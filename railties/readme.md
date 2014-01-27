@@ -26,7 +26,7 @@ end
 ### config.ru
 通过`run Rails.application`将应用程序交给Rack并运行
 
-## module Rails
+## Rails (module)
 
 封装了`application`,`cache`,`logger`三个参数
 
@@ -40,7 +40,16 @@ Rails.application.class  # => NewApp::Application
 Rails.application.is_a?(NewApp::Application)  # => true
 ```
 
-TODO: new_app::Application的实例是什么时候传递给Rails.application的？
+```ruby
+def inherited(base)
+  raise "You cannot have more than one Rails::Application" if Rails.application
+  super
+  Rails.application = base.instance
+  Rails.application.add_lib_to_load_path!
+  ActiveSupport.run_load_hooks(:before_configuration, base.instance)
+end
+```
+通过上面的代码，NewApp::Application的实例传递给了Rails.application的，而且只允许一个实例
 
 #### `cache`为`ActiveSupport::Cache::FileStore`实例
 
@@ -109,7 +118,7 @@ end
 
 `Rails::Engine` is a `Rails::Railtie`
 
-当定义一个Rails::Engine子类的时候，会调用`base.send(:include, Railtie::Configurable)`
+* 当定义一个Rails::Engine子类的时候，会调用`base.send(:include, Railtie::Configurable)`
 
 ```ruby
 class MyEngine < Rails::Engine
@@ -117,15 +126,16 @@ class MyEngine < Rails::Engine
 end
 ```
 
-而`Rails::Railtie::Configurable`封装了`instance`参数，通过`method_missing`将所有的方法转到`instance`来调用
-当调用`config`方法时，就会初始化`MyEngine`，然后转到这个实例(instance)来调用
+* 而`Rails::Railtie::Configurable`封装了`instance`参数，通过`method_missing`将所有的方法转到`instance`来调用
+
+* 当调用`config`方法时，就会初始化`MyEngine`，然后转到这个实例(instance)来调用
 
 ```ruby
 MyEngine.config # => MyEngine.new.config
 MyEngine.config.class # => Rails::Engine::Configuration
 ```
 
-所以，在定义里的config实际上就是`Rails::Engine::Configuration`的一个实例
+* 所以，在定义里的config实际上就是`Rails::Engine::Configuration`的一个实例
 
 ```ruby
 def inherited(base)
@@ -150,13 +160,59 @@ def inherited(base)
 end
 ```
 
+* 在Engine里加入了一些初始化设置：`set_load_path` `set_autoload_paths` `add_routing_paths` `add_locales` `add_view_paths`
+`load_environment_config` `append_assets_path` `prepend_helpers_path` `load_config_initializers` `engines_blank_point`
+
 #### Rails::Engine::Configuration (class)
 
 继承自`Rails::Railtie::Configurable`，记录了Engine的middleware，generators，paths，eager_load_paths，autoload_once_paths，autoload_paths
 
+#### Rails::Paths (module)
+
+包含两个类：`Rails::Paths::Root`和`Rails::Paths::Path`，主要用于记录配置Rails程序的目录信息
+
+`Rails::Paths::Root`记录了根目录信息，`Rails::Paths::Path`记录了其他目录信息
+
+允许添加额外的路径配置
+
 ### Rails::Application (class)
 
 `Rails::Application` is a `Rails::Engine`
+
+```ruby
+class << self
+  def inherited(base)
+    raise "You cannot have more than one Rails::Application" if Rails.application
+    super
+    Rails.application = base.instance
+    Rails.application.add_lib_to_load_path!
+    ActiveSupport.run_load_hooks(:before_configuration, base.instance)
+  end
+end
+```
+
+运用上面的代码，在`Rails::Application`被继承的时候，就自动初始化了一个实例，并将这个实例赋值给了`Rails.application`
+
+`initialize!`方法初始化所有的`initializers`，对Rails App进行初始化
+
+#### Rails::Application::Bootstrap (module)
+
+顾名思义，该模块主要用于加载Rails程序初始化的一些设置，用`Initializable`来完成
+
+初始化过程：`load_environment_hook` `load_active_support` `set_eager_load` `initialize_logger`
+`initialize_cache` `initialize_dependency_mechanism` `bootstrap_hook`
+
+#### Rails::Application::Configuration (class)
+
+用于保存Rails工程的一些设置，包括基本设置，assets设置，路径设置，数据库设置，日志设置，session保存设置等
+
+#### Rails::Application::Finisher (module)
+
+用于最后加入一些初始化设置，用`Initializable`来完成
+
+#### Rails::Application::RoutesReloader (class)
+
+用于动态加载Rails程序的路由设置，用`ActiveSupport::FileUpdateChecker`来完成对文件修改的侦测
 
 ### Rails::Initializable (module)
 
