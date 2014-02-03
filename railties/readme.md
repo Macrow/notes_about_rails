@@ -241,6 +241,12 @@ class MyRailtie < Rails::Railtie
 end
 ```
 
+### Rails::Generators (module)
+
+包含了`Base`，`Actions`，`ActiveModel`，`AppBase`，`Migration`，`NamedBase`，`ResourceHelpers`，`TestCase`等等
+
+Rails的生成器是基于`Thor`来实现的
+
 ### Rails::Info (class)
 
 记录加载的Ruby、Rails相关版本信息，ActiveSupport,ActiveRecord,ActionPack,ActionMailer等相关版本信息，Rack Middleware加载情况，以及App根目录，运行环境和数据库相关信息。
