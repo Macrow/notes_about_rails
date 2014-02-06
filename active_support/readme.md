@@ -164,8 +164,55 @@ end
 
 * 重新对`load`进行了定义，捕捉错误并抛出特定异常
 
+## ActiveSupport::Concern (module)
+
+主要用于模块包含和扩展，并计算了依赖情况
+
+```ruby
+module M
+  def self.included(base)
+    base.extend ClassMethods
+    base.class_eval do
+      scope :disabled, -> { where(disabled: true) }
+    end
+  end
+
+  module ClassMethods
+    ...
+  end
+end
+```
+可用`ActiveSupport::Concern`来简化代码
+```ruby
+require 'active_support/concern'
+
+module M
+  extend ActiveSupport::Concern
+
+  included do
+    scope :disabled, -> { where(disabled: true) }
+  end
+
+  module ClassMethods
+    ...
+  end
+end
+```
+
 ## ActiveSupport::Autoload (module)
 
 使Rails更便于加载所有模块和代码，只需要在模块或者类里加入`extend ActiveSupport::Autoload`即可使用`autoload`
 
 另外该模块还包括`eager_autoload`和`eager_load!`方法
+
+## ActiveSupport::Logger (class)
+
+继承自`Logger`，定义了`broadcast`类方法，用于把信息发送到其他日志
+
+### LoggerSilence (module)
+
+* 定义了`silence`方法，用于调用时不输出信息到日志
+
+## Lazy load hooks
+
+* 定义了`ActiveSupport.on_load` `ActiveSupport.run_load_hooks`两个函数，用于迟缓加载
