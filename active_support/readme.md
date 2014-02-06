@@ -99,6 +99,71 @@ delegate :age, to: :profile, allow_nil: true
 * 定义了`reachable?`检查该模块是否可以通过名字获取
 * 定义了`remove_possible_method`移除所有已定义的函数，包括私有函数，`redefine_method`可重新对函数进行定义
 
+### Numeric (class)
+
+* 定义了`bytes` `kilobytes` `megabytes` `gigabytes` `terabytes` `petabytes` `exabytes`来计算字节容量
+* 对`Float, Fixnum, Bignum, BigDecimal`的默认的`to_s`函数进行改写，可输出`:phone,:currency,:percentage,:delimited,:rounded,:human_size,:human`格式
+* 定义了`seconds` `minutes` `hours` `days` `weeks` `ago` `since`可方便地对数字进行时间的转换
+
+### Object (class)
+
+* 定义了`blank?` `present?`，并对`NilClass,FalseClass,TrueClass,Array,Hash,String,Numeric`定义了`blank?`方法来进行判断
+* 定义了`duplicable?`方法，`Object`设置为`true`，`NilClass,FalseClass,TrueClass,Symbol,Numeric`设置为`false`
+* 为`Object` `Array` `Hash`定义了`deep_dup`函数以进行深度复制
+* 定义了`instance_values` `instance_variable_names`分别返回实例变量的哈希表和数组
+* 为`Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass`定义了`to_json`
+
+```ruby
+[Object, Array, FalseClass, Float, Hash, Integer, NilClass, String, TrueClass].each do |klass|
+  klass.class_eval do
+    # Dumps object in JSON (JavaScript Object Notation). See www.json.org for more info.
+    def to_json(options = nil)
+      ActiveSupport::JSON.encode(self, options)
+    end
+  end
+end
+```
+
+* 定义了`to_param`，`Object`返回`to_s`，`NilClass,TrueClass,FalseClass`返回`self`，`Array`和`Hash`也进行了定义
+* 为`Object` `Array` `Hash`定义了`to_query`，返回URL请求字符串
+* 为`Object` `NilClass`定义了`try` `try!`方法，若调用方法存在则执行，反之返回`nil`，`NilClass`全部返回`nil`
+* 定义了`with_options`可对有相同哈希参数的情况进行代码简化
+
+### Range (class)
+
+* 重新定义了`to_s`方法，可根据需要对输出字符串进行格式化
+* 定义了`each` `step`方法，除了时间对象不可迭代外，其余均可进行迭代操作
+* 重新定义了`include?`方法，可对`Range`是否包含进行判断
+* 定义了`overlaps?`来判断两个范围是否有重叠
+
+### String (class)
+
+* 定义了`at` `from` `to` `first` `last`可对字符串进行截取操作
+* 定义了`to_time` `to_date` `to_datetime`可将字符串转换为时间/日期
+* 定义了`exclude?`检查字符串是否不包含另外的字符串
+* 定义了`squish` `squish!`移除多余的空格并清除换行，定义了`truncate`对字符串进行省略截取
+* 定义了`indent` `indent!`对字符串进行缩进操作
+* 定义了`pluralize` `singularize`进行单/复数转换
+* 定义了`constantize` `safe_constantize`将字符串转换为对象
+* 定义了`camelize` `titleize` `underscore` `dasherize` `demodulize` `deconstantize` `parameterize` `tableize` `classify` `humanize` `foreign_key`对字符串进行变形操作
+* 定义了`inquiry`将字符串转换为`ActiveSupport::StringInquirer`对象
+* 定义了`mb_chars` `is_utf8?`可对非英文的其他字符进行正常的操作
+* 定义了`html_safe`函数，将字符串转换为`ActiveSupport::SafeBuffer`对象
+* 定义了`strip_heredoc`可对`Here Document`进行缩进裁剪，使其对其
+* 定义了`in_time_zone`可将字符串转换为`TimeWithZone`
+
+### Time (class)
+
+基本内容和`Date` `DateTime`类似
+
+### Enumerable (module)
+
+* 定义了`sum` `index_by` `many?` `exclude?`方法，对`Enumerable`对象进行迭代操作
+
+### Marshal (class)
+
+* 重新对`load`进行了定义，捕捉错误并抛出特定异常
+
 ## ActiveSupport::Autoload (module)
 
 使Rails更便于加载所有模块和代码，只需要在模块或者类里加入`extend ActiveSupport::Autoload`即可使用`autoload`
