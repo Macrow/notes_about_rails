@@ -216,3 +216,70 @@ end
 ## Lazy load hooks
 
 * 定义了`ActiveSupport.on_load` `ActiveSupport.run_load_hooks`两个函数，用于迟缓加载
+
+## ActiveSupport::Dependencies (module)
+
+主要用于解决模块、类加载、自动加载、一次加载相互之间的依赖性
+
+### ActiveSupport::Dependencies::WatchStack (class)
+
+用于检测文件加载，确保相关依赖文件顺利加载
+
+## ActiveSupport::DescendantsTracker (module)
+
+用于追踪查看类的后裔相关信息，可用`descendants`查看
+
+## ActiveSupport::FileUpdateChecker (class)
+
+用于检测文件是否有更改，有的话可以执行相关操作，典型用法如下
+
+```ruby
+i18n_reloader = ActiveSupport::FileUpdateChecker.new(paths) do
+  I18n.reload!
+end
+
+ActionDispatch::Reloader.to_prepare do
+  i18n_reloader.execute_if_updated
+end
+```
+
+## ActiveSupport::Subscriber (class)
+
+用于派发`ActiveSupport::Notifications`到已注册的并且给定域名空间的对象
+
+## ActiveSupport::LogSubscriber (class)
+
+继承自`ActiveSupport::Subscriber`，用于派发信息到日志
+
+## ActiveSupport::Notifications (module)
+
+提供了一组用于测量和评估Rails内部所有动作和过程的API，主要提供了两个方法：`instrument`和`subscribe`
+
+* `instrument`用于发送事件信息，典型用法如下
+
+```ruby
+ActiveSupport::Notifications.instrument('render', extra: :information) do
+  render text: 'Foo'
+end
+```
+
+* `subscribe`用于订购事件信息，用法如下
+
+```ruby
+ActiveSupport::Notifications.subscribe('render') do |name, start, finish, id, payload|
+  name    # => String, name of the event (such as 'render' from above)
+  start   # => Time, when the instrumented block started execution
+  finish  # => Time, when the instrumented block ended execution
+  id      # => String, unique ID for this notification
+  payload # => Hash, the payload
+end
+``` 
+
+## ActiveSupport::BacktraceCleaner (class)
+
+用于追溯代码清理，可清理无用或无关信息，便于找到相关内容
+
+## ActiveSupport::ProxyObject (class)
+
+继承自`BasicObject`，取消了`==`和`equal?`两个方法的定义
+
